@@ -35,9 +35,7 @@ const Navbar = () => {
             <li>
             <Link to="/About" className="hover:text-blue-400">About</Link>
             </li>
-            <li>
-              <Link to="/Contact" className="hover:text-blue-400">Contact</Link>
-            </li>
+          
           </ul>
 
           <div className="lg:hidden flex flex-col justify-end">

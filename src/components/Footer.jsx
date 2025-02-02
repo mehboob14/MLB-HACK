@@ -33,7 +33,7 @@ const Footer = () => {
           </a>
         </div>
         <p className="text-xs text-gray-500">
-          Crafted with ❤️
+          made with ❤️
         </p>
       </div>
     </footer>
