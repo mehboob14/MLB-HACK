@@ -1,77 +1,152 @@
 import React, { useState } from "react";
-import { FaVideo } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { FaVideo, FaLink } from "react-icons/fa";
+import axios from "axios";
 
-const VideoAnalyzer = ({ setUploadedVideo }) => {
+const VideoAnalyzer = () => {
   const [videoFile, setVideoFile] = useState(null);
   const [videoURL, setVideoURL] = useState("");
-  const [videoLink, setVideoLink] = useState("");
   const [error, setError] = useState("");
+  const [returnedVideo, setReturnedVideo] = useState(""); 
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [responseMessage, setResponseMessage] = useState("");
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setVideoFile(file);
-      setVideoURL(URL.createObjectURL(file)); 
+      setVideoURL(""); 
       setError("");
     }
   };
 
   const handleURLChange = (e) => {
-    setVideoLink(e.target.value); 
+    setVideoURL(e.target.value);
+    if (e.target.value) {
+      setVideoFile(null); 
+      setError("");
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!videoFile && !videoLink) {
-      setError("Please upload a video or provide a video URL.");
-      return;
-    }
+    setLoading(true);
+    setResponseMessage("");
+    setError("");
+    setReturnedVideo(""); 
 
-    const selectedVideoURL = videoFile ? videoURL : videoLink; 
-    setUploadedVideo(selectedVideoURL); 
-    navigate("/Demo"); 
+    console.log('Video file selected:', videoFile);
+    console.log('Video URL:', videoURL);
+
+    try {
+      let response;
+
+      if (videoFile) {
+        const formData = new FormData();
+        formData.append("file", videoFile);
+
+      
+        console.log('FormData:', formData);
+
+        response = await axios.post("http://localhost:8000/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+      } else if (videoURL) {
+        response = await axios.post(
+          "http://localhost:8000/analyze-url",
+          { url: videoURL },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      } else {
+        setError("Please upload a video file or provide a video URL.");
+        setLoading(false);
+        return;
+      }
+
+      
+      console.log('Server Response:', response.data);
+
+      if (response.data.videoUrl) {
+        setReturnedVideo(response.data.videoUrl); 
+        setResponseMessage("Video processed successfully.");
+      } else {
+        setError("Failed to retrieve the processed video from the server.");
+      }
+    } catch (err) {
+      console.log('Error:', err);
+      setError(err.response?.data?.error || "An error occurred while processing your request.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <section className="bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white min-h-screen flex items-center justify-center px-6">
-      <div className="container mx-auto p-8 rounded-lg shadow-xl bg-gray-900">
-        <h2 className="text-3xl font-bold text-center mb-6">Upload or Provide Video Link</h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          
-          <label className="bg-indigo-600 hover:bg-indigo-700 py-3 px-6 rounded-lg shadow-md flex items-center justify-center cursor-pointer text-white">
-            <FaVideo className="mr-2" />
-            Upload Video
-            <input type="file" accept="video/*" onChange={handleFileChange} className="hidden" />
-          </label>
-
-
-          <div>
-            <label htmlFor="videoLink" className="block text-sm font-medium text-white">
-              Or Provide Video URL
-            </label>
-            <input
-              type="url"
-              id="videoLink"
-              value={videoLink}
-              onChange={handleURLChange}
-              className="mt-2 w-full px-4 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter video URL"
+    <section className="relative bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white min-h-screen flex items-center justify-center">
+      <div className="container mx-auto px-5 py-12 flex flex-col lg:flex-row items-center gap-8">
+       
+        <div className="w-full lg:w-1/2 flex flex-col items-center">
+          {returnedVideo ? (
+            <video
+              src={returnedVideo}
+              controls
+              className="w-full max-h-96 rounded-lg"
             />
-          </div>
-
-          {error && <p className="text-red-500">{error}</p>}
+          ) : (
+            <p className="text-gray-400 text-center">No video to display yet.</p>
+          )}
+        </div>
 
         
-          <button
-            type="submit"
-            className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
-          >
-            Analyze Video
-          </button>
-        </form>
+        <div className="w-full lg:w-1/2">
+          <h1 className="text-4xl font-bold mb-6 text-center lg:text-left">
+            Upload or Enter Video URL
+          </h1>
+          <form onSubmit={handleSubmit} className="space-y-4">
+           
+            <div className="flex flex-col lg:flex-row gap-4 items-center">
+              <label className="cursor-pointer bg-indigo-500 py-3 px-6 rounded-lg shadow-md text-center flex items-center">
+                <FaVideo className="mr-2" />
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                Upload Video
+              </label>
+              <div className="relative w-full">
+                <FaLink className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <input
+                  type="text"
+                  value={videoURL}
+                  onChange={handleURLChange}
+                  placeholder="Paste Video URL"
+                  className="pl-12 py-3 border rounded-lg w-full"
+                />
+              </div>
+            </div>
+
+            
+            {error && <p className="text-red-500">{error}</p>}
+            {loading && <p className="text-yellow-500">Processing...</p>}
+            {responseMessage && <p className="text-green-500">{responseMessage}</p>}
+
+            
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="py-3 px-6 bg-purple-600 rounded-lg shadow-md"
+              >
+                Submit
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </section>
   );
