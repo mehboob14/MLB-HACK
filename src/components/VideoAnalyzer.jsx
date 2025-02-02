@@ -47,14 +47,14 @@ const VideoAnalyzer = () => {
       
         console.log('FormData:', formData);
 
-        response = await axios.post("http://localhost:8000/upload", formData, {
+        response = await axios.post("http://20.244.34.18:443/docs/audio/url-to-speech", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         });
       } else if (videoURL) {
         response = await axios.post(
-          "http://localhost:8000/analyze-url",
+          "http://20.244.34.18:443/docs/audio/url-to-speech",
           { url: videoURL },
           {
             headers: {
