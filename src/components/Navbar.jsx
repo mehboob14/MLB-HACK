@@ -27,7 +27,10 @@ const Navbar = () => {
               <Link to="/" className="hover:text-blue-400">Home</Link>
             </li>
             <li>
-              <Link to="/VideoAnalyzer" className="hover:text-blue-400">Video Analyzer</Link>
+              <Link to="/VideoAnalyzer" className="hover:text-blue-400">Video From URL</Link>
+            </li>
+            <li>
+              <Link to="/VideoStats" className="hover:text-blue-400">Upload Video</Link>
             </li>
             <li>
               <Link to="/Demo" className="hover:text-blue-400">Demo</Link>
@@ -79,10 +82,10 @@ const Navbar = () => {
               </li>
               <li className="py-4">
                 <Link
-                  to="/Contact"
+                  to="/VideoStats"
                   className="text-white hover:text-orange-500 transition duration-300"
                 >
-                  Contact
+                  VideoStats
                 </Link>
               </li>
             </ul>

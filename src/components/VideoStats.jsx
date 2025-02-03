@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { FaLink, FaCopy } from "react-icons/fa";
+import { FaCopy, FaFileUpload } from "react-icons/fa";
 import axios from "axios";
 
 const VideoStats = () => {
-  const [videoURL, setVideoURL] = useState("");
+  const [videoFile, setVideoFile] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [responseData, setResponseData] = useState(null);
@@ -11,8 +11,8 @@ const VideoStats = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [shareableLink, setShareableLink] = useState(null);
 
-  const handleURLChange = (e) => {
-    setVideoURL(e.target.value);
+  const handleFileChange = (e) => {
+    setVideoFile(e.target.files[0]);
     setError("");
   };
 
@@ -23,21 +23,24 @@ const VideoStats = () => {
     setResponseData(null);
     setShareableLink(null);
 
-    if (!videoURL.trim()) {
-      setError("Please enter a valid video URL.");
+    if (!videoFile) {
+      setError("Please upload a video file.");
       setLoading(false);
       return;
     }
 
     try {
-      const encodedURL = encodeURIComponent(videoURL);
-      const speechResponse = await axios.post(
-        `http://20.244.34.18:443/audio/url-to-speech/?text=${encodedURL}`,
-        { headers: { "Content-Type": "application/json" } }
+      const formData = new FormData();
+      formData.append("file", videoFile);
+
+      const response = await axios.post(
+        "http://20.244.34.18:443/audio/url-to-speech/",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
 
-      if (speechResponse.data) {
-        setResponseData(speechResponse.data);
+      if (response.data) {
+        setResponseData(response.data);
 
         const videoResponse = await axios.get(
           "http://20.244.34.18:443/audio/generate-video/",
@@ -63,23 +66,6 @@ const VideoStats = () => {
       setLoading(false);
     }
   };
-  const renderMetrics = (data) => {
-    return (
-      <div className="w-full">
-        {Object.entries(data).map(([key, value]) => (
-          <div key={key} className="my-2">
-            <strong>{key}:</strong> {value}
-          </div>
-        ))}
-
-        {data.videoURL && (
-          <div className="my-2">
-            <strong>Video URL:</strong> <a href={data.videoURL} target="_blank" rel="noopener noreferrer">View Video</a>
-          </div>
-        )}
-      </div>
-    );
-  };
 
   return (
     <section className="relative bg-gray-800 text-white min-h-screen flex items-center justify-center">
@@ -92,37 +78,33 @@ const VideoStats = () => {
             <div className="w-full">
               <h3 className="text-2xl font-bold text-white mb-4">Metrics:</h3>
               <pre className="bg-gray-900 p-4 rounded-lg text-sm overflow-auto max-h-60">
-              {renderMetrics(responseData)}
+                {JSON.stringify(responseData, null, 2)}
               </pre>
             </div>
           )}
         </div>
 
-        <div className="w-full lg:w-1/2">
-          <h1 className="text-3xl font-bold mb-6 text-center lg:text-left">Enter Video URL</h1>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="relative w-full">
-              <FaLink className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-              <input
-                type="text"
-                value={videoURL}
-                onChange={handleURLChange}
-                placeholder="Paste Video URL"
-                className="pl-12 py-3 border rounded-lg w-full bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="w-full lg:w-1/2 flex flex-col gap-4">
+          <div className="relative w-full">
+            <FaFileUpload className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+            <input
+              type="file"
+              accept="video/*"
+              onChange={handleFileChange}
+              className="pl-12 py-3 border rounded-lg w-full bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="py-3 px-6 bg-blue-500 rounded-md shadow-md hover:bg-blue-600 transition duration-200"
-                disabled={loading}
-              >
-                {loading ? "Processing..." : "Submit"}
-              </button>
-            </div>
-          </form>
-        </div>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className="py-3 px-6 bg-blue-500 rounded-md shadow-md hover:bg-blue-600 transition duration-200"
+              disabled={loading}
+            >
+              {loading ? "Processing..." : "Submit"}
+            </button>
+          </div>
+        </form>
       </div>
 
       {showVideoModal && videoBlobURL && (
