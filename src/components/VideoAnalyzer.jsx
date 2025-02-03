@@ -133,7 +133,7 @@ const VideoStats = () => {
             <div className="flex-grow flex justify-center items-center">
               <video controls className="w-full h-full rounded-lg">
                 <source src={videoBlobURL} type="video/mp4" />
-                Your browser does not support the video tag.
+                Your browser is incompatible with video tag.
               </video>
             </div>
 
