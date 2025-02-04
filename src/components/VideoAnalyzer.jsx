@@ -32,7 +32,7 @@ const VideoStats = () => {
     try {
       const encodedURL = encodeURIComponent(videoURL);
       const speechResponse = await axios.post(
-        `http://20.244.34.18:8000/audio/url-to-speech/?text=${encodedURL}`,
+        `http://mlb-hack.centralindia.cloudapp.azure.com:8000/audio/url-to-speech/?text=${encodedURL}`,
         { headers: { "Content-Type": "application/json" } }
       );
 
@@ -40,7 +40,7 @@ const VideoStats = () => {
         setResponseData(speechResponse.data);
 
         const videoResponse = await axios.get(
-          "http://20.244.34.18:8000/audio/generate-video/",
+          "http://mlb-hack.centralindia.cloudapp.azure.com:8000/audio/generate-video/",
           { responseType: "blob" }
         );
 
